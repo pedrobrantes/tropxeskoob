@@ -1,6 +1,6 @@
 use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, CONTENT_TYPE, ORIGIN, REFERER, USER_AGENT, AUTHORIZATION};
 use anyhow::Result;
-use crate::skoob::models::{BookshelfResponse, SkoobBook};
+use crate::models::{BookshelfResponse, SkoobBook};
 use tokio::time::{sleep, Duration};
 
 pub struct SkoobClient {

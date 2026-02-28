@@ -1,7 +1,7 @@
 use anyhow::Result;
 use std::fs::File;
 use std::io::BufWriter;
-use crate::skoob::models::SkoobBook;
+use crate::models::SkoobBook;
 use std::collections::BTreeSet;
 
 pub struct SkoobExporter;

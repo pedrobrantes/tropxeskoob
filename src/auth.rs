@@ -1,7 +1,7 @@
 use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, CONTENT_TYPE, ORIGIN, REFERER, USER_AGENT};
 use serde_json::json;
 use anyhow::Result;
-use crate::skoob::models::LoginResponse;
+use crate::models::LoginResponse;
 
 pub struct SkoobAuth {
     client: reqwest::Client,
