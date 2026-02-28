@@ -16,6 +16,16 @@ O Skoob é uma rede social brasileira para leitores. Esta ferramenta permite que
 
 ## Instalação
 
+### Início Rápido (Binário)
+
+Baixe o binário mais recente para o seu sistema operacional na página de [Releases](https://github.com/pedrobrantes/tropxeskoob/releases), extraia e execute:
+
+```bash
+# Exemplo para Linux x86_64
+curl -L https://github.com/pedrobrantes/tropxeskoob/releases/latest/download/tropxeskoob-x86_64-unknown-linux-gnu.tar.gz | tar xz
+./tropxeskoob --help
+```
+
 ### Usando Cargo
 
 ```bash

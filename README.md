@@ -16,6 +16,16 @@ Skoob is a Brazilian social network for readers. This tool allows you to backup 
 
 ## Installation
 
+### Quick Start (Binary)
+
+Download the latest binary for your operating system from the [Releases](https://github.com/pedrobrantes/tropxeskoob/releases) page, extract it, and run:
+
+```bash
+# Example for Linux x86_64
+curl -L https://github.com/pedrobrantes/tropxeskoob/releases/latest/download/tropxeskoob-x86_64-unknown-linux-gnu.tar.gz | tar xz
+./tropxeskoob --help
+```
+
 ### Using Cargo
 
 ```bash
