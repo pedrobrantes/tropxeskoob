@@ -1,7 +1,9 @@
-use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, CONTENT_TYPE, ORIGIN, REFERER, USER_AGENT, AUTHORIZATION};
-use anyhow::Result;
 use crate::models::{BookshelfResponse, SkoobBook};
-use tokio::time::{sleep, Duration};
+use anyhow::Result;
+use reqwest::header::{
+    ACCEPT, AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue, ORIGIN, REFERER, USER_AGENT,
+};
+use tokio::time::{Duration, sleep};
 
 pub struct SkoobClient {
     client: reqwest::Client,
@@ -16,8 +18,11 @@ impl SkoobClient {
         headers.insert(ACCEPT, HeaderValue::from_static("application/json"));
         headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
         headers.insert(ORIGIN, HeaderValue::from_static("https://www.skoob.com.br"));
-        headers.insert(REFERER, HeaderValue::from_static("https://www.skoob.com.br/"));
-        
+        headers.insert(
+            REFERER,
+            HeaderValue::from_static("https://www.skoob.com.br/"),
+        );
+
         let mut auth_val = HeaderValue::from_str(&token)?;
         auth_val.set_sensitive(true);
         headers.insert(AUTHORIZATION, auth_val);
@@ -33,7 +38,13 @@ impl SkoobClient {
         })
     }
 
-    pub async fn fetch_bookshelf(&self, page: i32, limit: i32, bookshelf_type: &str, filter: &str) -> Result<BookshelfResponse> {
+    pub async fn fetch_bookshelf(
+        &self,
+        page: i32,
+        limit: i32,
+        bookshelf_type: &str,
+        filter: &str,
+    ) -> Result<BookshelfResponse> {
         let url = format!("{}/bookshelf", self.base_api_url);
         let params = [
             ("page", page.to_string()),
@@ -44,10 +55,7 @@ impl SkoobClient {
             ("search_type", "title".to_string()),
         ];
 
-        let response = self.client.get(&url)
-            .query(&params)
-            .send()
-            .await?;
+        let response = self.client.get(&url).query(&params).send().await?;
 
         if response.status().is_success() {
             let data = response.json::<BookshelfResponse>().await?;
@@ -59,13 +67,20 @@ impl SkoobClient {
         }
     }
 
-    pub async fn fetch_all_books(&self, bookshelf_type: &str, filter: &str, sleep_time: f32) -> Result<Vec<SkoobBook>> {
+    pub async fn fetch_all_books(
+        &self,
+        bookshelf_type: &str,
+        filter: &str,
+        sleep_time: f32,
+    ) -> Result<Vec<SkoobBook>> {
         let mut all_books = Vec::new();
         let mut page = 1;
 
         loop {
             println!("[*] Requesting page {}...", page);
-            let data = self.fetch_bookshelf(page, 30, bookshelf_type, filter).await?;
+            let data = self
+                .fetch_bookshelf(page, 30, bookshelf_type, filter)
+                .await?;
             let items = data.items;
 
             if items.is_empty() {
@@ -74,7 +89,12 @@ impl SkoobClient {
 
             all_books.extend(items);
             let total_items = &data.total_items;
-            println!("[+] Collected {}. Progress: {}/{}", all_books.len(), all_books.len(), total_items);
+            println!(
+                "[+] Collected {}. Progress: {}/{}",
+                all_books.len(),
+                all_books.len(),
+                total_items
+            );
 
             if page >= data.total_pages {
                 break;

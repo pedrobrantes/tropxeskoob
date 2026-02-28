@@ -1,7 +1,7 @@
-use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, CONTENT_TYPE, ORIGIN, REFERER, USER_AGENT};
-use serde_json::json;
-use anyhow::Result;
 use crate::models::LoginResponse;
+use anyhow::Result;
+use reqwest::header::{ACCEPT, CONTENT_TYPE, HeaderMap, HeaderValue, ORIGIN, REFERER, USER_AGENT};
+use serde_json::json;
 
 pub struct SkoobAuth {
     client: reqwest::Client,
@@ -16,7 +16,10 @@ impl SkoobAuth {
         headers.insert(ACCEPT, HeaderValue::from_static("application/json"));
         headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
         headers.insert(ORIGIN, HeaderValue::from_static("https://www.skoob.com.br"));
-        headers.insert(REFERER, HeaderValue::from_static("https://www.skoob.com.br/"));
+        headers.insert(
+            REFERER,
+            HeaderValue::from_static("https://www.skoob.com.br/"),
+        );
 
         let client = reqwest::Client::builder()
             .default_headers(headers)
@@ -36,7 +39,9 @@ impl SkoobAuth {
             "password": password
         });
 
-        let response = self.client.post(&url)
+        let response = self
+            .client
+            .post(&url)
             .header("platform-origin-login", "web")
             .json(&payload)
             .send()

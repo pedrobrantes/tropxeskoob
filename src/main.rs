@@ -4,12 +4,12 @@ mod exporter;
 mod models;
 
 use anyhow::Result;
+use base64::{Engine as _, engine::general_purpose};
 use clap::Parser;
+use rpassword::read_password;
+use serde_json::Value;
 use std::env;
 use std::io::{self, Write};
-use rpassword::read_password;
-use base64::{engine::general_purpose, Engine as _};
-use serde_json::Value;
 
 use crate::auth::SkoobAuth;
 use crate::client::SkoobClient;
@@ -30,7 +30,12 @@ struct Args {
     #[arg(short, long, help = "Manually provide a user ID")]
     user_id: Option<String>,
 
-    #[arg(short, long, default_value = "full_bookshelf", help = "Output file path/basename (without extension)")]
+    #[arg(
+        short,
+        long,
+        default_value = "full_bookshelf",
+        help = "Output file path/basename (without extension)"
+    )]
     output: String,
 
     #[arg(long, help = "Export to JSON format")]
@@ -46,10 +51,10 @@ fn get_user_id_from_token(token: &str) -> Option<String> {
         return None;
     }
     let payload = parts[1];
-    
+
     let decoded = general_purpose::URL_SAFE_NO_PAD.decode(payload).ok()?;
     let data: Value = serde_json::from_slice(&decoded).ok()?;
-    
+
     data.get("id").and_then(|id| match id {
         Value::String(s) => Some(s.clone()),
         Value::Number(n) => Some(n.to_string()),
@@ -61,8 +66,16 @@ fn get_user_id_from_token(token: &str) -> Option<String> {
 async fn main() -> Result<()> {
     let args = Args::parse();
 
-    let export_json = if !args.json && !args.csv { true } else { args.json };
-    let export_csv = if !args.json && !args.csv { true } else { args.csv };
+    let export_json = if !args.json && !args.csv {
+        true
+    } else {
+        args.json
+    };
+    let export_csv = if !args.json && !args.csv {
+        true
+    } else {
+        args.csv
+    };
 
     let mut token = args.token.or_else(|| env::var("SKOOB_AUTH_TOKEN").ok());
     let mut user_id = args.user_id.or_else(|| env::var("SKOOB_USER_ID").ok());
@@ -77,8 +90,12 @@ async fn main() -> Result<()> {
         let email = match email {
             Some(e) => e,
             None => {
-                eprintln!("[!] Error: Email not provided. Use --email or SKOOB_EMAIL environment variable.");
-                eprintln!("[!] Note: If you use Google/Facebook, use --token or set a password in your Skoob account settings.");
+                eprintln!(
+                    "[!] Error: Email not provided. Use --email or SKOOB_EMAIL environment variable."
+                );
+                eprintln!(
+                    "[!] Note: If you use Google/Facebook, use --token or set a password in your Skoob account settings."
+                );
                 std::process::exit(1);
             }
         };
@@ -98,36 +115,50 @@ async fn main() -> Result<()> {
         let auth = SkoobAuth::new()?;
         match auth.signin(&email, &password.unwrap()).await {
             Ok(login_data) => {
-                let t = login_data.token.clone().or_else(|| {
-                    login_data.response.as_ref().and_then(|r| r.token.clone())
-                });
+                let t = login_data
+                    .token
+                    .clone()
+                    .or_else(|| login_data.response.as_ref().and_then(|r| r.token.clone()));
 
-                let uid = login_data.user.as_ref().map(|u| match &u.id {
-                    Value::String(s) => s.clone(),
-                    Value::Number(n) => n.to_string(),
-                    _ => u.id.to_string(),
-                }).or_else(|| {
-                    login_data.response.as_ref().and_then(|r| r.user.as_ref().map(|u| match &u.id {
+                let uid = login_data
+                    .user
+                    .as_ref()
+                    .map(|u| match &u.id {
                         Value::String(s) => s.clone(),
                         Value::Number(n) => n.to_string(),
                         _ => u.id.to_string(),
-                    }))
-                });
+                    })
+                    .or_else(|| {
+                        login_data.response.as_ref().and_then(|r| {
+                            r.user.as_ref().map(|u| match &u.id {
+                                Value::String(s) => s.clone(),
+                                Value::Number(n) => n.to_string(),
+                                _ => u.id.to_string(),
+                            })
+                        })
+                    });
 
                 token = t;
                 user_id = uid;
 
-                if user_id.is_none() && token.is_some() {
-                    user_id = get_user_id_from_token(token.as_ref().unwrap());
+                if user_id.is_none() {
+                    if let Some(t_ref) = &token {
+                        user_id = get_user_id_from_token(t_ref);
+                    }
                 }
 
                 if token.is_none() || user_id.is_none() {
-                    eprintln!("[!] Login response received but token/user_id not found in usual places.");
+                    eprintln!(
+                        "[!] Login response received but token/user_id not found in usual places."
+                    );
                     eprintln!("DEBUG: {:?}", login_data);
                     std::process::exit(1);
                 }
-                
-                println!("[+] Login successful! User ID: {}", user_id.as_ref().unwrap());
+
+                println!(
+                    "[+] Login successful! User ID: {}",
+                    user_id.as_ref().unwrap()
+                );
             }
             Err(e) => {
                 eprintln!("[!] Login failed: {}", e);

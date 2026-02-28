@@ -1,8 +1,8 @@
+use crate::models::SkoobBook;
 use anyhow::Result;
+use std::collections::BTreeSet;
 use std::fs::File;
 use std::io::BufWriter;
-use crate::models::SkoobBook;
-use std::collections::BTreeSet;
 
 pub struct SkoobExporter;
 
@@ -39,7 +39,9 @@ impl SkoobExporter {
         for book in data {
             let mut row = Vec::new();
             for key in &all_keys {
-                let value = book.extra.get(key)
+                let value = book
+                    .extra
+                    .get(key)
                     .map(|v| match v {
                         serde_json::Value::String(s) => s.clone(),
                         _ => v.to_string(),
@@ -51,7 +53,11 @@ impl SkoobExporter {
         }
 
         writer.flush()?;
-        println!("[+] CSV generated successfully: '{}' ({} columns identified)", file_path, all_keys.len());
+        println!(
+            "[+] CSV generated successfully: '{}' ({} columns identified)",
+            file_path,
+            all_keys.len()
+        );
         Ok(())
     }
 }
