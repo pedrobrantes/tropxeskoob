@@ -24,31 +24,54 @@ jobs:
         include:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
+            use-cross: false
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
+            use-cross: true
           - target: x86_64-apple-darwin
             os: macos-latest
+            use-cross: false
           - target: aarch64-apple-darwin
             os: macos-latest
+            use-cross: false
           - target: x86_64-pc-windows-msvc
             os: windows-latest
+            use-cross: false
 
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+      
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
-      - run: cargo build --release --target ${{ matrix.target }}
-      - shell: bash
+      
+      - name: Install Cross
+        if: matrix.use-cross
+        run: cargo install cross --git https://github.com/cross-rs/cross.git
+      
+      - name: Build
         run: |
-          cd target/${{ matrix.target }}/release
+          if [ "${{ matrix.use-cross }}" = "true" ]; then
+            cross build --release --target ${{ matrix.target }}
+          else
+            cargo build --release --target ${{ matrix.target }}
+          fi
+        shell: bash
+      
+      - name: Package
+        shell: bash
+        run: |
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            cd target/${{ matrix.target }}/release
             7z a ../../../tropxeskoob-${{ matrix.target }}.zip tropxeskoob.exe
           else
+            cd target/${{ matrix.target }}/release
             tar czf ../../../tropxeskoob-${{ matrix.target }}.tar.gz tropxeskoob
           fi
-      - uses: actions/upload-artifact@v4
+          
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
         with:
           name: tropxeskoob-${{ matrix.target }}
           path: tropxeskoob-${{ matrix.target }}.*
