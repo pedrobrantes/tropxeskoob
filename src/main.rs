@@ -47,8 +47,6 @@ fn get_user_id_from_token(token: &str) -> Option<String> {
     }
     let payload = parts[1];
     
-    // Base64 decoding with padding fix is handled by general_purpose::URL_SAFE_NO_PAD or similar
-    // JWT uses URL-safe base64 without padding.
     let decoded = general_purpose::URL_SAFE_NO_PAD.decode(payload).ok()?;
     let data: Value = serde_json::from_slice(&decoded).ok()?;
     
@@ -61,17 +59,11 @@ fn get_user_id_from_token(token: &str) -> Option<String> {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let mut args = Args::parse();
+    let args = Args::parse();
 
-    // Default to both if neither is specified
-    let mut export_json = args.json;
-    let mut export_csv = args.csv;
-    if !export_json && !export_csv {
-        export_json = true;
-        export_csv = true;
-    }
+    let export_json = if !args.json && !args.csv { true } else { args.json };
+    let export_csv = if !args.json && !args.csv { true } else { args.csv };
 
-    // Priority: Argument > Environment Variable
     let mut token = args.token.or_else(|| env::var("SKOOB_AUTH_TOKEN").ok());
     let mut user_id = args.user_id.or_else(|| env::var("SKOOB_USER_ID").ok());
     let email = args.email.or_else(|| env::var("SKOOB_EMAIL").ok());
@@ -106,8 +98,7 @@ async fn main() -> Result<()> {
         let auth = SkoobAuth::new()?;
         match auth.signin(&email, &password.unwrap()).await {
             Ok(login_data) => {
-                // Flexible extraction from login response
-                let t = login_data.token.or_else(|| {
+                let t = login_data.token.clone().or_else(|| {
                     login_data.response.as_ref().and_then(|r| r.token.clone())
                 });
 
@@ -155,7 +146,7 @@ async fn main() -> Result<()> {
                 SkoobExporter::to_json(&books, &format!("{}.json", args.output))?;
             }
             if export_csv {
-                SkoobExporter.to_csv(&books, &format!("{}.csv", args.output))?;
+                SkoobExporter::to_csv(&books, &format!("{}.csv", args.output))?;
             }
             println!("\n[DONE] Successfully exported {} books.", books.len());
         }
