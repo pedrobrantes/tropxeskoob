@@ -6,35 +6,39 @@ on:
       - 'v*'
 
 jobs:
-  publish:
-    name: Publish Binary
+  publish-cargo:
+    name: Publish to crates.io
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo publish --token ${{ secrets.CRATES_IO_TOKEN }}
+
+  build-binaries:
+    name: Build Binaries
+    needs: publish-cargo
     strategy:
       matrix:
         include:
-          - target: x86_64-unknown-linux
+          - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
-          - target: aarch64-unknown-linux
+          - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
           - target: x86_64-apple-darwin
             os: macos-latest
           - target: aarch64-apple-darwin
             os: macos-latest
-          - target: x86_64-windows-msvc
+          - target: x86_64-pc-windows-msvc
             os: windows-latest
 
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
-      
-      - name: Build
-        run: cargo build --release --target ${{ matrix.target }}
-      
-      - name: Package
-        shell: bash
+      - run: cargo build --release --target ${{ matrix.target }}
+      - shell: bash
         run: |
           cd target/${{ matrix.target }}/release
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
@@ -42,29 +46,33 @@ jobs:
           else
             tar czf ../../../tropxeskoob-${{ matrix.target }}.tar.gz tropxeskoob
           fi
-          
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: tropxeskoob-${{ matrix.target }}
           path: tropxeskoob-${{ matrix.target }}.*
 
-  create-release:
-    needs: publish
+  github-release:
+    name: Create GitHub Release
+    needs: build-binaries
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Download Artifacts
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           pattern: tropxeskoob-*
           merge-multiple: true
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
+      - uses: softprops/action-gh-release@v1
         with:
           files: tropxeskoob-*
           generate_release_notes: true
+          body: |
+            ## Installation
+            
+            ### Via Cargo
+            ```bash
+            cargo install tropxeskoob
+            ```
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
