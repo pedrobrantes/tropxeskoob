@@ -47,12 +47,17 @@ impl SkoobAuth {
             .send()
             .await?;
 
-        if response.status().is_success() {
-            let data = response.json::<LoginResponse>().await?;
-            Ok(data)
+        let status = response.status();
+        let text = response.text().await?;
+
+        if status.is_success() {
+            match serde_json::from_str::<LoginResponse>(&text) {
+                Ok(data) => Ok(data),
+                Err(e) => {
+                    anyhow::bail!("Login decode error: {} - Raw response: {}", e, text)
+                }
+            }
         } else {
-            let status = response.status();
-            let text = response.text().await?;
             anyhow::bail!("{} - {}", status, text)
         }
     }

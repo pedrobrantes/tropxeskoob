@@ -14,20 +14,24 @@ pub struct BookshelfResponse {
     pub total_pages: i32,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct LoginResponse {
     pub response: Option<LoginResponseData>,
     pub token: Option<String>,
     pub user: Option<UserInfo>,
+    #[serde(flatten)]
+    pub extra: HashMap<String, serde_json::Value>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct LoginResponseData {
     pub token: Option<String>,
     pub user: Option<UserInfo>,
+    #[serde(flatten)]
+    pub extra: HashMap<String, serde_json::Value>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct UserInfo {
     pub id: serde_json::Value,
 }

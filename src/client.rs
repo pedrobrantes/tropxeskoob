@@ -56,13 +56,17 @@ impl SkoobClient {
         ];
 
         let response = self.client.get(&url).query(&params).send().await?;
+        let status = response.status();
+        let text = response.text().await?;
 
-        if response.status().is_success() {
-            let data = response.json::<BookshelfResponse>().await?;
-            Ok(data)
+        if status.is_success() {
+            match serde_json::from_str::<BookshelfResponse>(&text) {
+                Ok(data) => Ok(data),
+                Err(e) => {
+                    anyhow::bail!("Bookshelf decode error: {} - Raw response: {}", e, text)
+                }
+            }
         } else {
-            let status = response.status();
-            let text = response.text().await?;
             anyhow::bail!("{} - {}", status, text)
         }
     }
