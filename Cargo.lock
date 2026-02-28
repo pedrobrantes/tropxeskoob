@@ -1525,7 +1525,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "tropxeskoob_rs"
+name = "tropxeskoob"
 version = "0.1.0"
 dependencies = [
  "anyhow",

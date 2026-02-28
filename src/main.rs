@@ -120,7 +120,11 @@ async fn main() -> Result<()> {
                     t = login_data.response.as_ref().and_then(|r| r.token.clone());
                 }
                 if t.is_none() {
-                    t = login_data.extra.get("token").and_then(|v| v.as_str()).map(|s| s.to_string());
+                    t = login_data
+                        .extra
+                        .get("token")
+                        .and_then(|v| v.as_str())
+                        .map(|s| s.to_string());
                 }
 
                 let mut uid: Option<String> = login_data.user.as_ref().map(|u| match &u.id {
@@ -141,7 +145,10 @@ async fn main() -> Result<()> {
 
                 if uid.is_none() {
                     // Try top-level extra
-                    uid = login_data.extra.get("user_id").or_else(|| login_data.extra.get("id"))
+                    uid = login_data
+                        .extra
+                        .get("user_id")
+                        .or_else(|| login_data.extra.get("id"))
                         .map(|v| match v {
                             Value::String(s) => s.clone(),
                             Value::Number(n) => n.to_string(),
@@ -153,9 +160,7 @@ async fn main() -> Result<()> {
                 user_id = uid;
 
                 if user_id.is_none() {
-                    if let Some(t_ref) = &token {
-                        user_id = get_user_id_from_token(t_ref);
-                    }
+                    user_id = token.as_ref().and_then(|t| get_user_id_from_token(t));
                 }
 
                 if token.is_none() || user_id.is_none() {
