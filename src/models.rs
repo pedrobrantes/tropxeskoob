@@ -12,7 +12,6 @@ pub struct BookshelfResponse {
     pub items: Vec<SkoobBook>,
     pub total_items: serde_json::Value, // Sometimes string, sometimes int
     pub total_pages: i32,
-    pub success: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -20,7 +19,6 @@ pub struct LoginResponse {
     pub response: Option<LoginResponseData>,
     pub token: Option<String>,
     pub user: Option<UserInfo>,
-    pub success: bool,
 }
 
 #[derive(Debug, Deserialize)]

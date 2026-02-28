@@ -5,7 +5,6 @@ use tokio::time::{sleep, Duration};
 
 pub struct SkoobClient {
     client: reqwest::Client,
-    token: String,
     user_id: String,
     base_api_url: String,
 }
@@ -29,7 +28,6 @@ impl SkoobClient {
 
         Ok(Self {
             client,
-            token,
             user_id,
             base_api_url: "https://prd-api.skoob.com.br/api/v1".to_string(),
         })
