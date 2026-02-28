@@ -27,6 +27,6 @@ javascript:prompt("Copy your Skoob Token:", document.cookie.match(/tokenClient=(
 With the copied token, run:
 
 ```bash
-uv run main.py --token "PASTE_HERE"
+tropxeskoob --token "PASTE_HERE" --user-id YOUR_USER_ID
 ```
 *(The quotes are important)*
