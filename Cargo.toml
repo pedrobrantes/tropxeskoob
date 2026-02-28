@@ -1,7 +1,13 @@
 [package]
-name = "tropxeskoob_rs"
+name = "tropxeskoob"
 version = "0.1.0"
 edition = "2024"
+description = "Export your Skoob bookshelf to JSON and CSV"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/pedrobrantes/tropxeskoob"
+readme = "README.md"
+keywords = ["skoob", "export", "bookshelf", "json", "csv"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 anyhow = "1.0.102"
