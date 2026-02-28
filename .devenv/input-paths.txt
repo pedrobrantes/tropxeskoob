@@ -1,7 +1,0 @@
-/home/brantes/tropxeskoob_rs/.devenv/flake.json
-/home/brantes/tropxeskoob_rs/.devenv.flake.nix
-/home/brantes/tropxeskoob_rs/.env
-/home/brantes/tropxeskoob_rs/devenv.local.nix
-/home/brantes/tropxeskoob_rs/devenv.lock
-/home/brantes/tropxeskoob_rs/devenv.nix
-/home/brantes/tropxeskoob_rs/devenv.yaml
